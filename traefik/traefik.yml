@@ -11,6 +11,7 @@ entryPoints:
 providers:
   docker:
     exposedByDefault: false
+    network: proxy
 
   file:
     directory: /etc/traefik/dynamic
