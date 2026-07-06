@@ -1,0 +1,22 @@
+# Environment
+.env
+
+# SSL Certificates
+*.pem
+*.key
+*.crt
+
+# Traefik certificates
+traefik/certs/
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
+
+# JetBrains
+.idea/
