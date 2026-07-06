@@ -19,12 +19,34 @@ services:
       - ./traefik:/etc/traefik
       - ./traefik/certs:/certs
 
+  mariadb:
+    image: mariadb:11
+    container_name: mariadb
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    environment:
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      TZ: ${TZ}
+
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+    networks:
+      - internal
+
 networks:
   proxy:
     name: proxy
 
   internal:
     name: internal
+    internal: true
 
 volumes:
   wordpress_data:
