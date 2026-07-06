@@ -1,7 +1,7 @@
 http:
   routers:
     dashboard:
-      rule: "Host(`traefik.example.com`)"
+      rule: "Host(`traefik.yourdomain.com`)"
       service: api@internal
       entryPoints:
-        - websecure
+        - web
