@@ -1,0 +1,100 @@
+services:
+  traefik:
+    image: traefik:v3
+    container_name: traefik
+    restart: unless-stopped
+
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    networks:
+      - proxy
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik:/etc/traefik
+      - ./traefik/certs:/certs
+
+  wordpress:
+    image: wordpress:php8.3-apache
+    container_name: wordpress
+    restart: unless-stopped
+
+    depends_on:
+      - mariadb
+
+    env_file:
+      - .env
+
+    environment:
+      WORDPRESS_DB_HOST: mariadb:3306
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+
+    volumes:
+      - wordpress_data:/var/www/html
+
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.wordpress.rule=Host(`wp.yourdomain.com`)
+      - traefik.http.routers.wordpress.entrypoints=web
+      - traefik.http.services.wordpress.loadbalancer.server.port=80
+
+    networks:
+      - proxy
+      - internal
+
+  redis:
+    image: redis:8-alpine
+    container_name: redis
+    restart: unless-stopped
+
+    command: redis-server --appendonly yes
+
+    volumes:
+      - redis_data:/data
+
+    networks:
+      - internal
+
+  mariadb:
+    image: mariadb:11
+    container_name: mariadb
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    environment:
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      TZ: ${TZ}
+
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+    networks:
+      - internal
+
+networks:
+  proxy:
+    name: proxy
+
+  internal:
+    name: internal
+    internal: true
+
+volumes:
+  wordpress_data:
+  nextcloud_data:
+  mariadb_data:
+  redis_data:
+  uptimekuma_data:
