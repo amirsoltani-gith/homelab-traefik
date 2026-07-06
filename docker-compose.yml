@@ -1,0 +1,31 @@
+services:
+  traefik:
+    image: traefik:v3
+    container_name: traefik
+    restart: unless-stopped
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    networks:
+      - proxy
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik:/etc/traefik
+      - ./traefik/certs:/certs
+
+networks:
+  proxy:
+    name: proxy
+
+  internal:
+    name: internal
+
+volumes:
+  wordpress_data:
+  nextcloud_data:
+  mariadb_data:
+  redis_data:
+  uptimekuma_data:
