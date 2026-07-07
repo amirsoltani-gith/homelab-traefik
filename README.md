@@ -133,6 +133,17 @@ Additional documentation will be added as the project grows.
 
 ---
 
+# Requirements
+
+Before running this project, ensure the following software is installed:
+
+- Ubuntu Server 24.04 LTS (recommended)
+- Docker Engine 29.x or newer
+- Docker Compose v2
+- Git
+
+---
+
 # Quick Start
 
 Clone the repository.
