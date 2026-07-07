@@ -94,7 +94,9 @@ networks:
 
 volumes:
   wordpress_data:
-  nextcloud_data:
   mariadb_data:
   redis_data:
+
+  # Reserved for future releases
   uptimekuma_data:
+  nextcloud_data:
