@@ -6,9 +6,9 @@
 ![License](https://img.shields.io/github/license/amirsoltani-gith/homelab-traefik)
 ![Status](https://img.shields.io/badge/status-active-success)
 
-A production-like homelab built with Docker Compose and Traefik to practice Linux system administration, containerized infrastructure, networking, and self-hosted services.
+A production-inspired homelab built with Docker Compose and Traefik to practice Linux system administration, containerized infrastructure, networking, and self-hosted services.
 
-> This project is intended for learning, documentation, and portfolio purposes by building infrastructure in a production-like environment.
+> This project follows production-inspired design and operational practices for learning, experimentation, and portfolio purposes. It is not intended to be deployed in production environments.
 
 ---
 
