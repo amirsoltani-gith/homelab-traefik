@@ -58,18 +58,23 @@ The project focuses on:
 
 ```text
 .
+├── .env.example
+├── .gitignore
 ├── docker-compose.yml
+├── LICENSE
+├── README.md
 ├── docs/
+│   ├── architecture.md
+│   └── networking.md
 ├── images/
 ├── scripts/
-├── traefik/
-│   ├── certs/
-│   ├── dynamic/
-│   │   ├── middlewares/
-│   │   ├── routers/
-│   │   └── tls/
-│   └── traefik.yml
-└── README.md
+└── traefik/
+    ├── certs/
+    ├── dynamic/
+    │   ├── middlewares/
+    │   ├── routers/
+    │   └── tls/
+    └── traefik.yml
 ```
 
 ---
