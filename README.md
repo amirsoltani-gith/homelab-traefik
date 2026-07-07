@@ -80,16 +80,24 @@ The project focuses on:
                 Internet
                     │
                     ▼
-             Traefik Reverse Proxy
-                    │
-        ┌───────────┴───────────┐
-        │                       │
-   WordPress               Future Services
-        │
-        ▼
-     MariaDB
+          ┌─────────────────┐
+          │     Traefik     │
+          │ Reverse Proxy   │
+          └────────┬────────┘
+                   │
+            proxy network
+                   │
+          ┌────────▼────────┐
+          │    WordPress    │
+          └────────┬────────┘
+                   │
+          internal network
+          ┌────────┴────────┐
+          │                 │
+     ┌────▼────┐      ┌────▼────┐
+     │ MariaDB │      │  Redis  │
+     └─────────┘      └─────────┘
 
-Redis
 ```
 
 ---
