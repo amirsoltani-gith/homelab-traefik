@@ -97,6 +97,6 @@ volumes:
   mariadb_data:
   redis_data:
 
-  # Reserved for future releases
+  # Reserved for future services
   uptimekuma_data:
   nextcloud_data:
