@@ -42,8 +42,13 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=proxy
-      - traefik.http.routers.wordpress.rule=Host(`wp.yourdomain.com`)
-      - traefik.http.routers.wordpress.entrypoints=web
+
+      - traefik.http.routers.wordpress.rule=Host(`${WORDPRESS_DOMAIN}`)
+
+      - traefik.http.routers.wordpress.entrypoints=websecure
+      - traefik.http.routers.wordpress.tls=true
+      - traefik.http.routers.wordpress.tls.certresolver=letsencrypt
+
       - traefik.http.services.wordpress.loadbalancer.server.port=80
 
     networks:

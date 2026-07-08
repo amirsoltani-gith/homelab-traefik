@@ -17,5 +17,13 @@ providers:
     directory: /etc/traefik/dynamic
     watch: true
 
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: owebra23@gmail.com
+      storage: /certs/acme.json
+      httpChallenge:
+        entryPoint: web
+
 log:
   level: INFO
