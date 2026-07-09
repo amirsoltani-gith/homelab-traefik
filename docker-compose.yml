@@ -42,18 +42,22 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=proxy
-
       - traefik.http.routers.wordpress.rule=Host(`${WORDPRESS_DOMAIN}`)
-
       - traefik.http.routers.wordpress.entrypoints=websecure
       - traefik.http.routers.wordpress.tls=true
       - traefik.http.routers.wordpress.tls.certresolver=letsencrypt
-
       - traefik.http.services.wordpress.loadbalancer.server.port=80
 
     networks:
       - proxy
       - internal
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost/wp-login.php"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   redis:
     image: redis:8-alpine
