@@ -3,6 +3,8 @@ services:
     image: traefik:v3
     container_name: traefik
     restart: unless-stopped
+    init: true
+    stop_grace_period: 10s
 
     command:
       - --configFile=/etc/traefik/traefik.yml
@@ -23,9 +25,12 @@ services:
     image: wordpress:php8.3-apache
     container_name: wordpress
     restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
 
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
 
     env_file:
       - .env
@@ -64,10 +69,50 @@ services:
       retries: 3
       start_period: 30s
 
+  phpmyadmin:
+    image: phpmyadmin:5.2.2-apache
+    container_name: phpmyadmin
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 10s
+
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: "3306"
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+
+      - traefik.http.routers.phpmyadmin.rule=Host(`${PHPMYADMIN_DOMAIN}`)
+      - traefik.http.routers.phpmyadmin.entrypoints=websecure
+      - traefik.http.routers.phpmyadmin.tls=true
+      - traefik.http.routers.phpmyadmin.tls.certresolver=letsencrypt
+
+      - traefik.http.services.phpmyadmin.loadbalancer.server.port=80
+
+    networks:
+      - proxy
+      - internal
+
+
   redis:
     image: redis:8-alpine
     container_name: redis
     restart: unless-stopped
+    init: true
+    stop_grace_period: 10s
 
     command: redis-server --appendonly yes
 
@@ -81,6 +126,8 @@ services:
     image: mariadb:11
     container_name: mariadb
     restart: unless-stopped
+    init: true
+    stop_grace_period: 60s
 
     env_file:
       - .env
@@ -91,6 +138,17 @@ services:
       MARIADB_PASSWORD: ${MARIADB_PASSWORD}
       MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
       TZ: ${TZ}
+
+    healthcheck:
+      test:
+        - CMD
+        - healthcheck.sh
+        - --connect
+        - --innodb_initialized
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
     volumes:
       - mariadb_data:/var/lib/mysql
