@@ -85,7 +85,7 @@ services:
       PMA_PORT: "3306"
 
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost/"]
+      test: ["CMD", "curl", "-fsS", "http://localhost/status.php?format=json"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -106,6 +106,60 @@ services:
       - proxy
       - internal
 
+  nextcloud:
+    image: nextcloud:31-apache
+    container_name: nextcloud
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+    env_file:
+      - .env
+
+    environment:
+      MYSQL_HOST: mariadb:3306
+      MYSQL_DATABASE: ${NEXTCLOUD_DB_NAME}
+      MYSQL_USER: ${NEXTCLOUD_DB_USER}
+      MYSQL_PASSWORD: ${NEXTCLOUD_DB_PASSWORD}
+
+      NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER}
+      NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD}
+
+    volumes:
+      - nextcloud_data:/var/www/html
+
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+
+      - traefik.http.routers.nextcloud.rule=Host(`${NEXTCLOUD_DOMAIN}`)
+      - traefik.http.routers.nextcloud.entrypoints=websecure
+      - traefik.http.routers.nextcloud.tls=true
+      - traefik.http.routers.nextcloud.tls.certresolver=letsencrypt
+
+      - traefik.http.services.nextcloud.loadbalancer.server.port=80
+
+      - traefik.http.routers.nextcloud.middlewares=security-headers@file
+
+      - traefik.http.routers.nextcloud-http.rule=Host(`${NEXTCLOUD_DOMAIN}`)
+      - traefik.http.routers.nextcloud-http.entrypoints=web
+      - traefik.http.routers.nextcloud-http.middlewares=redirect-to-https@file
+      - traefik.http.routers.nextcloud-http.service=nextcloud
+
+    networks:
+      - proxy
+      - internal
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost/status.php"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
 
   redis:
     image: redis:8-alpine
@@ -168,7 +222,7 @@ volumes:
   wordpress_data:
   mariadb_data:
   redis_data:
-
+  nextcloud_data:
   # Reserved for future services
   uptimekuma_data:
-  nextcloud_data:
+
