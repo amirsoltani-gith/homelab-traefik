@@ -134,7 +134,6 @@ services:
 
     volumes:
       - nextcloud_data:/var/www/html
-      - ./nextcloud/config/redis.config.php:/var/www/html/config/redis.config.php:ro
 
     labels:
       - traefik.enable=true
