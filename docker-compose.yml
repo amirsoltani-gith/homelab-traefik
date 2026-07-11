@@ -199,6 +199,35 @@ services:
     networks:
       - internal
 
+  database-init:
+    image: mariadb:11
+    container_name: database-init
+    restart: "no"
+
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+    env_file:
+      - .env
+
+    environment:
+      MARIADB_HOST: mariadb
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      NEXTCLOUD_DB_NAME: ${NEXTCLOUD_DB_NAME}
+      NEXTCLOUD_DB_USER: ${NEXTCLOUD_DB_USER}
+      NEXTCLOUD_DB_PASSWORD: ${NEXTCLOUD_DB_PASSWORD}
+
+    volumes:
+      - ./docker/database-init/init.sh:/init.sh:ro
+
+    entrypoint:
+      - bash
+      - /init.sh
+
+    networks:
+      - internal
+
   mariadb:
     image: mariadb:11
     container_name: mariadb
