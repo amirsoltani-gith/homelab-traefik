@@ -183,6 +183,45 @@ services:
     networks:
       - internal
 
+  uptime-kuma:
+    image: louislam/uptime-kuma:2
+    container_name: uptime-kuma
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+
+    volumes:
+      - uptimekuma_data:/app/data
+
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+
+      - traefik.http.routers.uptime-kuma.rule=Host(`${UPTIME_KUMA_DOMAIN}`)
+      - traefik.http.routers.uptime-kuma.entrypoints=websecure
+      - traefik.http.routers.uptime-kuma.tls=true
+      - traefik.http.routers.uptime-kuma.tls.certresolver=letsencrypt
+
+      - traefik.http.services.uptime-kuma.loadbalancer.server.port=3001
+
+      - traefik.http.routers.uptime-kuma.middlewares=security-headers@file
+
+      - traefik.http.routers.uptime-kuma-http.rule=Host(`${UPTIME_KUMA_DOMAIN}`)
+      - traefik.http.routers.uptime-kuma-http.entrypoints=web
+      - traefik.http.routers.uptime-kuma-http.middlewares=redirect-to-https@file
+      - traefik.http.routers.uptime-kuma-http.service=uptime-kuma
+
+    networks:
+      - proxy
+      - internal
+
+    healthcheck:
+      test: ["CMD", "extra/healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
   redis:
     image: redis:8-alpine
     container_name: redis
