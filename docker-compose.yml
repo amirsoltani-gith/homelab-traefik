@@ -3,6 +3,8 @@ services:
     image: traefik:v3
     container_name: traefik
     restart: unless-stopped
+    init: true
+    stop_grace_period: 10s
 
     command:
       - --configFile=/etc/traefik/traefik.yml
@@ -23,9 +25,12 @@ services:
     image: wordpress:php8.3-apache
     container_name: wordpress
     restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
 
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
 
     env_file:
       - .env
@@ -42,18 +47,187 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=proxy
-      - traefik.http.routers.wordpress.rule=Host(`wp.yourdomain.com`)
-      - traefik.http.routers.wordpress.entrypoints=web
+      - traefik.http.routers.wordpress.rule=Host(`${WORDPRESS_DOMAIN}`)
+      - traefik.http.routers.wordpress.entrypoints=websecure
+      - traefik.http.routers.wordpress.tls=true
+      - traefik.http.routers.wordpress.tls.certresolver=letsencrypt
       - traefik.http.services.wordpress.loadbalancer.server.port=80
+      - traefik.http.routers.wordpress.middlewares=security-headers@file
+      - traefik.http.routers.wordpress-http.rule=Host(`${WORDPRESS_DOMAIN}`)
+      - traefik.http.routers.wordpress-http.entrypoints=web
+      - traefik.http.routers.wordpress-http.middlewares=redirect-to-https@file
+      - traefik.http.routers.wordpress-http.service=wordpress
 
     networks:
       - proxy
       - internal
 
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost/wp-login.php"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  phpmyadmin:
+    image: phpmyadmin:5.2.2-apache
+    container_name: phpmyadmin
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 10s
+
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: "3306"
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost/status.php?format=json"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+
+      - traefik.http.routers.phpmyadmin.rule=Host(`${PHPMYADMIN_DOMAIN}`)
+      - traefik.http.routers.phpmyadmin.entrypoints=websecure
+      - traefik.http.routers.phpmyadmin.tls=true
+      - traefik.http.routers.phpmyadmin.tls.certresolver=letsencrypt
+
+      - traefik.http.services.phpmyadmin.loadbalancer.server.port=80
+
+    networks:
+      - proxy
+      - internal
+
+  nextcloud:
+    image: nextcloud:31-apache
+    container_name: nextcloud
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+    env_file:
+      - .env
+
+    environment:
+      MYSQL_HOST: mariadb:3306
+      MYSQL_DATABASE: ${NEXTCLOUD_DB_NAME}
+      MYSQL_USER: ${NEXTCLOUD_DB_USER}
+      MYSQL_PASSWORD: ${NEXTCLOUD_DB_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_HOST_PORT: 6379
+      REDIS_HOST_PASSWORD:
+
+      NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER}
+      NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD}
+
+    volumes:
+      - nextcloud_data:/var/www/html
+
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+
+      - traefik.http.routers.nextcloud.rule=Host(`${NEXTCLOUD_DOMAIN}`)
+      - traefik.http.routers.nextcloud.entrypoints=websecure
+      - traefik.http.routers.nextcloud.tls=true
+      - traefik.http.routers.nextcloud.tls.certresolver=letsencrypt
+
+      - traefik.http.services.nextcloud.loadbalancer.server.port=80
+
+      - traefik.http.routers.nextcloud.middlewares=security-headers@file
+
+      - traefik.http.routers.nextcloud-http.rule=Host(`${NEXTCLOUD_DOMAIN}`)
+      - traefik.http.routers.nextcloud-http.entrypoints=web
+      - traefik.http.routers.nextcloud-http.middlewares=redirect-to-https@file
+      - traefik.http.routers.nextcloud-http.service=nextcloud
+
+    networks:
+      - proxy
+      - internal
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost/status.php"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  nextcloud-cron:
+    image: nextcloud:31-apache
+    container_name: nextcloud-cron
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+
+    depends_on:
+      nextcloud:
+        condition: service_healthy
+
+    entrypoint: /cron.sh
+
+    volumes:
+      - nextcloud_data:/var/www/html
+
+    networks:
+      - internal
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:2
+    container_name: uptime-kuma
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+
+    volumes:
+      - uptimekuma_data:/app/data
+
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+
+      - traefik.http.routers.uptime-kuma.rule=Host(`${UPTIME_KUMA_DOMAIN}`)
+      - traefik.http.routers.uptime-kuma.entrypoints=websecure
+      - traefik.http.routers.uptime-kuma.tls=true
+      - traefik.http.routers.uptime-kuma.tls.certresolver=letsencrypt
+
+      - traefik.http.services.uptime-kuma.loadbalancer.server.port=3001
+
+      - traefik.http.routers.uptime-kuma.middlewares=security-headers@file
+
+      - traefik.http.routers.uptime-kuma-http.rule=Host(`${UPTIME_KUMA_DOMAIN}`)
+      - traefik.http.routers.uptime-kuma-http.entrypoints=web
+      - traefik.http.routers.uptime-kuma-http.middlewares=redirect-to-https@file
+      - traefik.http.routers.uptime-kuma-http.service=uptime-kuma
+
+    networks:
+      - proxy
+      - internal
+
+    healthcheck:
+      test: ["CMD", "extra/healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
   redis:
     image: redis:8-alpine
     container_name: redis
     restart: unless-stopped
+    init: true
+    stop_grace_period: 10s
 
     command: redis-server --appendonly yes
 
@@ -63,10 +237,41 @@ services:
     networks:
       - internal
 
+  database-init:
+    image: mariadb:11
+    container_name: database-init
+    restart: "no"
+
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+    env_file:
+      - .env
+
+    environment:
+      MARIADB_HOST: mariadb
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      NEXTCLOUD_DB_NAME: ${NEXTCLOUD_DB_NAME}
+      NEXTCLOUD_DB_USER: ${NEXTCLOUD_DB_USER}
+      NEXTCLOUD_DB_PASSWORD: ${NEXTCLOUD_DB_PASSWORD}
+
+    volumes:
+      - ./docker/database-init/init.sh:/init.sh:ro
+
+    entrypoint:
+      - bash
+      - /init.sh
+
+    networks:
+      - internal
+
   mariadb:
     image: mariadb:11
     container_name: mariadb
     restart: unless-stopped
+    init: true
+    stop_grace_period: 60s
 
     env_file:
       - .env
@@ -77,6 +282,17 @@ services:
       MARIADB_PASSWORD: ${MARIADB_PASSWORD}
       MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
       TZ: ${TZ}
+
+    healthcheck:
+      test:
+        - CMD
+        - healthcheck.sh
+        - --connect
+        - --innodb_initialized
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
     volumes:
       - mariadb_data:/var/lib/mysql
@@ -94,7 +310,9 @@ networks:
 
 volumes:
   wordpress_data:
-  nextcloud_data:
   mariadb_data:
   redis_data:
+  nextcloud_data:
+  # Reserved for future services
   uptimekuma_data:
+

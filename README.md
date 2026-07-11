@@ -6,9 +6,9 @@
 ![License](https://img.shields.io/github/license/amirsoltani-gith/homelab-traefik)
 ![Status](https://img.shields.io/badge/status-active-success)
 
-A production-like homelab built with Docker Compose and Traefik to practice Linux system administration, containerized infrastructure, networking, and self-hosted services.
+# A production-like homelab infrastructure built with Docker Compose and Traefik to practice Linux system administration, containerized infrastructure, networking, and self-hosted services.
 
-> This project is intended for learning, documentation, and portfolio purposes by building infrastructure in a production-like environment.
+> This project follows production-inspired design and operational practices for learning, experimentation, and portfolio purposes. It is not intended to be deployed in production environments.
 
 ---
 
@@ -30,12 +30,15 @@ The project focuses on:
 # Current Stack
 
 - Ubuntu Server 24.04 LTS
-- Docker Engine
-- Docker Compose
+- Docker Engine 29.x
+- Docker Compose v2
 - Traefik v3
-- MariaDB
-- Redis
-- WordPress
+- MariaDB 11
+- Redis 8
+- WordPress (PHP 8.3)
+- phpMyAdmin
+- Nextcloud 31
+- Uptime Kuma 2
 
 ---
 
@@ -47,9 +50,9 @@ The project focuses on:
 | WordPress | ✅ |
 | MariaDB | ✅ |
 | Redis | ✅ |
-| Nextcloud | Planned |
-| Uptime Kuma | Planned |
-| phpMyAdmin | Planned |
+| phpMyAdmin | ✅ |
+| Nextcloud | ✅ |
+| Uptime Kuma | ✅ |
 | Element | Planned |
 
 ---
@@ -60,6 +63,9 @@ The project focuses on:
 .
 ├── .env.example
 ├── .gitignore
+├── docker/
+│   └── database-init/
+│       └── init.sh
 ├── docker-compose.yml
 ├── LICENSE
 ├── README.md
@@ -75,6 +81,7 @@ The project focuses on:
     │   ├── routers/
     │   └── tls/
     └── traefik.yml
+
 ```
 
 ---
@@ -82,19 +89,24 @@ The project focuses on:
 # Architecture
 
 ```
-                Internet
+
+                  Internet
                     │
                     ▼
              Traefik Reverse Proxy
                     │
-        ┌───────────┴───────────┐
-        │                       │
-   WordPress               Future Services
-        │
-        ▼
-     MariaDB
+     ┌────────┬───────────┬────────────┬─────────────┐
+     │        │           │            │
+ WordPress Nextcloud phpMyAdmin Uptime Kuma
+     │        │           │
+     └────────┴───────────┘
+             │
+          MariaDB
+             │
+          (Nextcloud)
+             │
+           Redis
 
-Redis
 ```
 
 ---
@@ -109,6 +121,9 @@ Redis
 - Modular Traefik configuration
 - Infrastructure documentation
 - Git Flow based development workflow
+- Nextcloud deployment
+- Database administration with phpMyAdmin
+- Uptime monitoring
 
 ---
 
@@ -135,6 +150,17 @@ Current documentation includes:
 - Networking
 
 Additional documentation will be added as the project grows.
+
+---
+
+# Requirements
+
+Before running this project, ensure the following software is installed:
+
+- Ubuntu Server 24.04 LTS (recommended)
+- Docker Engine 29.x or newer
+- Docker Compose v2
+- Git
 
 ---
 
@@ -180,27 +206,27 @@ This repository is used to practice:
 
 ## v0.1
 
-- Traefik
-- MariaDB
-- Redis
-- WordPress
+- ✅ Traefik
+- ✅ MariaDB
+- ✅ Redis
+- ✅ WordPress
 
 ## v0.2
 
-- HTTPS
-- Let's Encrypt
-- Security headers
+- ✅ HTTPS
+- ✅ Let's Encrypt
+- ✅ Security headers
 - Dashboard
 
 ## v0.3
 
-- phpMyAdmin
-- Nextcloud
+- ✅ phpMyAdmin
+- ✅ Nextcloud
 
 ## v0.4
 
-- Uptime Kuma
-- Monitoring
+- ✅ Uptime Kuma
+- ✅ Monitoring
 
 ## v0.5
 
@@ -239,7 +265,7 @@ Git Flow is used to keep the repository organized and maintain a clean commit hi
 
 Current version:
 
-**v0.1.0**
+**v0.4.0**
 
 This project is actively developed and new services will be added incrementally.
 
