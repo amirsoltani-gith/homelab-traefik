@@ -165,6 +165,25 @@ services:
       retries: 3
       start_period: 60s
 
+  nextcloud-cron:
+    image: nextcloud:31-apache
+    container_name: nextcloud-cron
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+
+    depends_on:
+      nextcloud:
+        condition: service_healthy
+
+    entrypoint: /cron.sh
+
+    volumes:
+      - nextcloud_data:/var/www/html
+
+    networks:
+      - internal
+
   redis:
     image: redis:8-alpine
     container_name: redis
