@@ -171,6 +171,40 @@ backup_volumes() {
 }
 
 ########################################
+# Retention Cleanup
+########################################
+
+cleanup_old_backups() {
+
+    log "Removing backups older than ${RETENTION_DAYS} days..."
+
+    local removed=false
+
+    while IFS= read -r backup; do
+
+        log "Removing: ${backup}"
+
+        rm -rf "${backup}"
+
+        removed=true
+
+    done < <(
+        find "${BACKUP_ROOT}" \
+            -mindepth 1 \
+            -maxdepth 1 \
+            -type d \
+            -mtime +"${RETENTION_DAYS}"
+    )
+
+    if [[ "${removed}" == false ]]; then
+        log "No expired backups found."
+    else
+        log "Retention cleanup completed."
+    fi
+
+}
+
+########################################
 # Main
 ########################################
 
@@ -186,6 +220,7 @@ main() {
 
     backup_mariadb
     backup_volumes
+    cleanup_old_backups
 
     log "Backup initialization completed."
 

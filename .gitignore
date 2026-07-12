@@ -20,3 +20,4 @@ traefik/certs/
 
 # JetBrains
 .idea/
+backups/
