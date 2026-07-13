@@ -237,8 +237,8 @@ This repository is used to practice:
 
 ## v0.5
 
-✅ Backup automation
-✅ Restore automation
+- ✅ Backup automation
+- ✅ Restore automation
 - Telegram notifications
 
 ## Future
