@@ -315,4 +315,4 @@ volumes:
   nextcloud_data:
   # Reserved for future services
   uptimekuma_data:
-
+  
