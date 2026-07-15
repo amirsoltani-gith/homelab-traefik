@@ -74,6 +74,8 @@ The project focuses on:
 │   └── networking.md
 ├── images/
 ├── scripts/
+│   ├── backup.sh
+│   └── restore.sh
 └── traefik/
     ├── certs/
     ├── dynamic/
@@ -124,6 +126,10 @@ The project focuses on:
 - Nextcloud deployment
 - Database administration with phpMyAdmin
 - Uptime monitoring
+- Backup and restore automation
+- Backup validation
+- Docker volume backup
+- MariaDB backup and restore
 
 ---
 
@@ -148,6 +154,7 @@ Current documentation includes:
 
 - Architecture
 - Networking
+- CHANGELOG
 
 Additional documentation will be added as the project grows.
 
@@ -230,15 +237,19 @@ This repository is used to practice:
 
 ## v0.5
 
-- Backup automation
+- ✅ Backup automation
+- ✅ Restore automation
 - Telegram notifications
 
 ## Future
 
+- Telegram notifications
 - GitHub Actions
 - CI validation
 - Container health checks
 - Automated testing
+- Automatic updates
+- Disaster recovery documentation
 
 ---
 
@@ -265,7 +276,7 @@ Git Flow is used to keep the repository organized and maintain a clean commit hi
 
 Current version:
 
-**v0.4.0**
+**v0.5.1**
 
 This project is actively developed and new services will be added incrementally.
 
