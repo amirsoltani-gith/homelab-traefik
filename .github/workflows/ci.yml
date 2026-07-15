@@ -39,4 +39,3 @@ jobs:
             .github/workflows \
             traefik \
             docs
-            
