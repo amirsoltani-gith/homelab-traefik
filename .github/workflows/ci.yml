@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - feature/**
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose
+        run: docker compose -f docker-compose.yml config
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck python3-pip
+          pip3 install yamllint
+
+      - name: Lint shell scripts
+        run: |
+          find scripts -type f -name "*.sh" -exec shellcheck {} \;
+
+      - name: Lint YAML
+        run: |
+          yamllint \
+            docker-compose.yml \
+            .github/workflows \
+            traefik \
+            docs
