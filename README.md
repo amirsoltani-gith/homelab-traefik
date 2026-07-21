@@ -71,7 +71,8 @@ The project focuses on:
 ├── README.md
 ├── docs/
 │   ├── architecture.md
-│   └── networking.md
+│   ├── networking.md
+│   └── release.md
 ├── images/
 ├── scripts/
 │   ├── backup.sh
@@ -154,6 +155,7 @@ Current documentation includes:
 
 - Architecture
 - Networking
+- Release Process
 - CHANGELOG
 
 Additional documentation will be added as the project grows.
@@ -244,7 +246,6 @@ This repository is used to practice:
 ## Future
 
 - Telegram notifications
-- GitHub Actions
 - CI validation
 - Container health checks
 - Automated testing
